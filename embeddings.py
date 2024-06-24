@@ -16,7 +16,7 @@ def get_file(file):
         raise ValueError("Unsupported file type")
 
 def get_text_chunks(pages):  # divide text of file into chunks
-    text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1200, chunk_overlap=30, 
+    text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1500, chunk_overlap=30, 
                                           length_function=len)
     chunks = []
     for text, page_number in pages:
@@ -31,12 +31,17 @@ class DocumentChunk:                   #create a class to store text chunk with 
         self.page_content = page_content
         self.metadata = metadata
 
+def load_embeddings():
+     embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+     vector_store= FAISS.load_local("faiss_index", embeddings,allow_dangerous_deserialization=True)
+     return vector_store
 
 def create_embeddings(text_chunks):
     embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
     documents = [DocumentChunk(page_content=chunk['text'], metadata={'page': chunk['page_number']}) 
                  for chunk in text_chunks]
     vector_store = FAISS.from_documents(documents, embeddings)
+    vector_store.save_local("faiss_index")
     # retriever = vector_store.as_retriever(search_kwargs={'k': 1}, search_type="similarity")
     return vector_store
 
@@ -50,7 +55,6 @@ def bm25_search(text_chunks, query, k=1):
     top_k_indices = scores.argsort()[-k:][::-1]
     results = [(docs[i], scores[i]) for i in top_k_indices]
     return results
-
 
 
 
