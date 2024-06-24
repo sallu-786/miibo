@@ -101,6 +101,7 @@ def main():
 
             doc_text = st.session_state.vectordb.similarity_search_with_score(query=user_msg, k=1)
             doc_texts = [{"content": doc.page_content, "metadata": doc.metadata} for doc,score in doc_text]
+
             # reranked_results = rrf(bm25_results, k=1)
             # doc_texts2 = [{"content": doc["content"], "metadata": doc["metadata"]} for doc in reranked_results]
             with st.spinner("Loading answer..."):
